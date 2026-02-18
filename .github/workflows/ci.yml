@@ -10,6 +10,16 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    services:
+      bank_simulator:
+        image: bbyars/mountebank:2.8.1
+        ports:
+          - 2525:2525
+          - 8080:8080
+        volumes:
+          - ./imposters:/imposters
+        command: --configfile /imposters/bank_simulator.ejs --allowInjection
+
     steps:
     - uses: actions/checkout@v4
 
@@ -21,6 +31,19 @@ jobs:
 
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@v3
+
+    - name: Wait for bank simulator to be ready
+      run: |
+        echo "Waiting for bank simulator on port 8080..."
+        for i in {1..30}; do
+          if curl -s http://localhost:8080 > /dev/null 2>&1; then
+            echo "Bank simulator is ready!"
+            exit 0
+          fi
+          sleep 1
+        done
+        echo "Bank simulator failed to start"
+        exit 1
 
     - name: Build with Gradle
       run: ./gradlew build
