@@ -20,7 +20,7 @@ jobs:
         distribution: 'temurin'
 
     - name: Start bank simulator
-      run: docker-compose up -d
+      run: docker compose up -d
 
     - name: Wait for bank simulator to be ready
       run: |
